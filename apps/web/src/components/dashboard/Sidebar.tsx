@@ -11,7 +11,8 @@ import {
     Settings,
     BookOpen,
     BarChart3,
-    Search
+    Search,
+    Plus
 } from "lucide-react";
 
 const navigation = [
@@ -37,7 +38,12 @@ export function Sidebar() {
             </div>
 
             <div className="px-3 py-4">
-                <div className="mb-4 px-2">
+                <div className="mb-4 px-2 space-y-2">
+                    <Link href="/dashboard/tickets/create" className="flex w-full items-center justify-center gap-2 rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-zinc-50 shadow hover:bg-zinc-900/90 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-50/90 transition-colors">
+                        <Plus className="h-4 w-4" />
+                        <span>New Ticket</span>
+                    </Link>
+
                     <button className="flex w-full items-center gap-2 rounded-md border bg-background px-3 py-1.5 text-sm text-muted-foreground shadow-sm hover:bg-accent hover:text-accent-foreground">
                         <Search className="h-4 w-4" />
                         <span>Search...</span>
