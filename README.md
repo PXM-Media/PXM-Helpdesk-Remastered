@@ -4,7 +4,7 @@
 > Fast, reliable, and fully self-hostable alternative to Zendesk/Intercom.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Status](https://img.shields.io/badge/status-pre--alpha-red.svg)
+![Status](https://img.shields.io/badge/status-in%20development-orange.svg)
 ![Stack](https://img.shields.io/badge/stack-Next.js%20%7C%20Postgres%20%7C%20Docker-black.svg)
 
 ## 🌟 Vision
