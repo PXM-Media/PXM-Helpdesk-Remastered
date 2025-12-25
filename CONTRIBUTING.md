@@ -10,7 +10,7 @@ This project and everyone participating in it is governed by our Code of Conduct
 
 ### Reporting Bugs
 
-- Ensure the bug was not already reported by searching on GitHub under [Issues](https://github.com/your-org/pxm-helpdesk-remastered/issues).
+- Ensure the bug was not already reported by searching on GitHub under [Issues](https://github.com/PXM-Media/PXM-Helpdesk-Remastered/issues).
 - If you're unable to find an open issue addressing the problem, open a new one. Be sure to include a **title and clear description**, as well as as much relevant information as possible.
 
 ### Suggesting Enhancements
