@@ -30,7 +30,7 @@ Built for companies who value **Data Sovereignty**, **Speed**, and **Customizabi
 
 ## 🗺 Roadmap
 
-See [task.md](.gemini/antigravity/brain/38e28ce2-365d-4304-a208-8047e87ec64b/task.md) for the active development plan.
+See [ROADMAP.md](ROADMAP.md) for the active development plan.
 
 - [ ] Global Search
 - [ ] SSO (Single Sign On)
