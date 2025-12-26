@@ -1,3 +1,8 @@
+> [!WARNING]
+> This Project is stuck at the current Point.
+> We would be grateful for any help we can get.
+
+
 # PXM Helpdesk Remastered 🚀
 
 > **The Open Source Helpdesk for modern teams.**
