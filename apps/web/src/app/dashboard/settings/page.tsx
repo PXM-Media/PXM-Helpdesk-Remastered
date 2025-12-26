@@ -1,3 +1,8 @@
+import { Button } from "@repo/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@repo/ui/card";
+import { Input } from "@repo/ui/input";
+import { Label } from "@repo/ui/label";
+
 export default function SettingsPage() {
     return (
         <div className="space-y-6">
@@ -7,9 +12,30 @@ export default function SettingsPage() {
                     Manage your organization profile and preferences.
                 </p>
             </div>
-            <div className="rounded-md border p-6 bg-background">
-                <p className="text-sm text-muted-foreground">General settings form (Brand Name, Timezone, etc.) coming soon.</p>
-            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Organization Profile</CardTitle>
+                    <CardDescription>
+                        Update your organization&apos;s basic information.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="orgName">Organization Name</Label>
+                            <Input id="orgName" defaultValue="PXM Media" disabled />
+                            <p className="text-xs text-muted-foreground">Contact support to change your organization name.</p>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="portalName">Portal Name</Label>
+                            <Input id="portalName" defaultValue="PXM Help Center" />
+                        </div>
+                    </form>
+                </CardContent>
+                <CardFooter>
+                    <Button>Save Changes</Button>
+                </CardFooter>
+            </Card>
         </div>
     );
 }

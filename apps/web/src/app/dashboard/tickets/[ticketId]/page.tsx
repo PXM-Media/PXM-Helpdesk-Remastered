@@ -9,7 +9,14 @@ import { notFound } from "next/navigation";
 
 export default async function TicketDetailPage({ params }: { params: { ticketId: string } }) {
     const ticketId = parseInt(params.ticketId);
+    console.log("TicketDetailPage: ticketId parsed:", ticketId, "params:", params);
+
+    if (isNaN(ticketId)) {
+        notFound();
+    }
+
     const { data: ticket, success } = await getTicket(ticketId);
+
     const { data: macros } = await getActiveMacros();
 
     if (!success || !ticket) {

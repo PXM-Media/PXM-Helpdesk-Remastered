@@ -1,14 +1,3 @@
-"use client";
-
-import { createTicket } from "@/lib/actions/tickets";
-import { Button } from "@repo/ui/button";
-import { useFormState } from "react-dom";
-
-// Initial state for useFormState
-const initialState = {
-    message: null,
-};
-
 import { getTicketFields } from "@/lib/actions/fields";
 import { DynamicTicketForm } from "@/components/tickets/DynamicTicketForm";
 

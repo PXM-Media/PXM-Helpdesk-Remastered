@@ -2,6 +2,9 @@ import { getUsers } from "@/lib/actions/users";
 import { UserRoleSelect } from "@/components/settings/UserRoleSelect";
 import { UserActionsMenu } from "@/components/settings/UserActionsMenu";
 import { formatDistanceToNow } from "date-fns";
+import Link from "next/link";
+import { Button } from "@repo/ui/button";
+import { Plus } from "lucide-react";
 
 export default async function UsersSettingsPage() {
     const { data: users } = await getUsers();
@@ -13,6 +16,15 @@ export default async function UsersSettingsPage() {
                 <p className="text-sm text-muted-foreground">
                     Manage access and roles for your team members and customers.
                 </p>
+            </div>
+
+            <div className="flex justify-end">
+                <Link href="/dashboard/settings/users/create">
+                    <Button>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Invite User
+                    </Button>
+                </Link>
             </div>
 
             <div className="rounded-md border bg-background">

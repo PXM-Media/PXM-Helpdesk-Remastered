@@ -16,6 +16,7 @@ export async function getTickets() {
     try {
         const tickets = await db.query.tickets.findMany({
             orderBy: (tickets, { desc }) => [desc(tickets.createdAt)],
+            where: (tickets, { notInArray }) => notInArray(tickets.status, ["SOLVED", "CLOSED"]),
             with: {
                 requester: true,
                 assignee: true,
@@ -48,6 +49,8 @@ export async function getTicket(id: number) {
                 }
             }
         });
+
+
 
         if (!ticket) return { success: false, error: "Ticket not found" };
         return { success: true, data: ticket };
@@ -139,7 +142,10 @@ export async function createTicket(prevState: CreateTicketState, formData: FormD
             where: (users, { eq }) => eq(users.id, userId)
         });
 
+
+
         if (!user || !user.organizationId) {
+            console.error("createTicket: User has no organization ID");
             // throw new Error("User organization invalid");
         }
 

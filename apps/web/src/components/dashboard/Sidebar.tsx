@@ -17,9 +17,9 @@ import {
 
 const navigation = [
     { name: "Inbox", href: "/dashboard", icon: Inbox },
-    { name: "Views", href: "/dashboard/views", icon: LayoutDashboard },
+    // { name: "Views", href: "/dashboard/views", icon: LayoutDashboard }, // TODO: Implement Views Page
     { name: "Tickets", href: "/dashboard/tickets", icon: Ticket },
-    { name: "Customers", href: "/dashboard/customers", icon: Users },
+    // { name: "Customers", href: "/dashboard/customers", icon: Users }, // TODO: Implement Customers Page
     { name: "Knowledge Base", href: "/dashboard/knowledge", icon: BookOpen },
     { name: "Reporting", href: "/dashboard/reporting", icon: BarChart3 },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },

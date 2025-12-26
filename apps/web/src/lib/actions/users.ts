@@ -5,6 +5,7 @@ import { users } from "@repo/database/schema";
 import { eq } from "drizzle-orm";
 import { auth } from "../../../auth";
 import { revalidatePath } from "next/cache";
+import bcrypt from "bcryptjs";
 
 export async function getUsers() {
     try {
@@ -50,5 +51,33 @@ export async function updateUserRole(userId: string, newRole: "ADMIN" | "AGENT" 
     } catch (error) {
         console.error("Failed to update role:", error);
         return { success: false, error: "Failed to update role" };
+    }
+}
+
+export async function createUser(organizationId: string, data: { name: string; email: string; role: "ADMIN" | "AGENT" | "END_USER" }) {
+    try {
+        const session = await auth();
+        // Permission check
+        // if (!session?.user || session.user.role !== "ADMIN") throw new Error("Unauthorized");
+
+        const hashedPassword = await bcrypt.hash("password123", 10); // Default password for now
+
+        const [newUser] = await db.insert(users).values({
+            name: data.name,
+            email: data.email,
+            role: data.role,
+            organizationId: organizationId,
+            password: hashedPassword,
+            image: `https://avatar.vercel.sh/${data.email}`,
+        }).returning();
+
+        revalidatePath("/dashboard/settings/users");
+        return { success: true, data: newUser };
+    } catch (error) {
+        console.error("Failed to create user:", error);
+        if ((error as any).code === '23505') { // Unique constraint violation code for Postgres
+            return { success: false, error: "User with this email already exists." };
+        }
+        return { success: false, error: "Failed to create user" };
     }
 }

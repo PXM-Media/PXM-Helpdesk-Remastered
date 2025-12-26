@@ -4,6 +4,7 @@ import { useFormState, useFormStatus } from "react-dom";
 import { authenticate } from "@/lib/actions/auth";
 import { Button } from "@repo/ui/button";
 import { AlertCircle } from "lucide-react";
+import Link from "next/link";
 
 export default function LoginForm() {
     const [errorMessage, dispatch] = useFormState(authenticate, undefined);
@@ -48,6 +49,12 @@ export default function LoginForm() {
                         />
                     </div>
                 </div>
+
+                <div className="flex items-center justify-end mt-1">
+                    <Link href="/forgot-password" className="text-sm font-medium text-primary hover:underline">
+                        Forgot password?
+                    </Link>
+                </div>
             </div>
             <LoginButton />
             <div
@@ -62,7 +69,7 @@ export default function LoginForm() {
                     </>
                 )}
             </div>
-        </form>
+        </form >
     );
 }
 

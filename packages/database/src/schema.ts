@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, uuid, pgEnum, jsonb, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, uuid, pgEnum, jsonb, integer, primaryKey } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // ----------------------------------------------------------------------
@@ -220,9 +220,11 @@ export const articles = pgTable("articles", {
 // ----------------------------------------------------------------------
 // Relations (For convenient query API)
 // ----------------------------------------------------------------------
-export const organizationRelations = relations(organizations, ({ many }) => ({
+export const organizationRelations = relations(organizations, ({ many, one }) => ({
     users: many(users),
     tickets: many(tickets),
+    widgetSettings: one(widgetSettings),
+    emailSettings: one(emailSettings)
 }));
 
 export const userRelations = relations(users, ({ one, many }) => ({
@@ -322,6 +324,17 @@ export const ticketRelations = relations(tickets, ({ one, many }) => ({
     customValues: many(ticketFieldValues),
 }));
 
+export const ticketFieldValuesRelations = relations(ticketFieldValues, ({ one }) => ({
+    ticket: one(tickets, {
+        fields: [ticketFieldValues.ticketId],
+        references: [tickets.id],
+    }),
+    field: one(ticketFields, {
+        fields: [ticketFieldValues.fieldId],
+        references: [ticketFields.id],
+    }),
+}));
+
 export const commentRelations = relations(comments, ({ one }) => ({
     ticket: one(tickets, {
         fields: [comments.ticketId],
@@ -331,4 +344,72 @@ export const commentRelations = relations(comments, ({ one }) => ({
         fields: [comments.authorId],
         references: [users.id],
     }),
+}));
+
+// ----------------------------------------------------------------------
+// Widget Settings
+// ----------------------------------------------------------------------
+export const widgetSettings = pgTable("widget_settings", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").references(() => organizations.id).notNull().unique(), // One settings per org for MVP
+    color: text("color").default("#000000").notNull(),
+    title: text("title").default("Help Desk").notNull(),
+    greeting: text("greeting").default("How can we help you today?").notNull(),
+    isEnabled: boolean("is_enabled").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const widgetSettingsRelations = relations(widgetSettings, ({ one }) => ({
+    organization: one(organizations, {
+        fields: [widgetSettings.organizationId],
+        references: [organizations.id],
+    }),
+}));
+
+
+
+// ----------------------------------------------------------------------
+// Email Settings (IMAP/SMTP)
+// ----------------------------------------------------------------------
+export const emailSettings = pgTable("email_settings", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id").references(() => organizations.id).notNull().unique(),
+
+    // IMAP (Inbound)
+    imapHost: text("imap_host").notNull(),
+    imapPort: integer("imap_port").default(993).notNull(),
+    imapUser: text("imap_user").notNull(),
+    imapPassword: text("imap_password").notNull(), // Plaintext for MVP
+
+    // SMTP (Outbound)
+    smtpHost: text("smtp_host").notNull(),
+    smtpPort: integer("smtp_port").default(587).notNull(),
+    smtpUser: text("smtp_user").notNull(),
+    smtpPassword: text("smtp_password").notNull(),
+
+    enabled: boolean("enabled").default(false).notNull(),
+    lastSyncAt: timestamp("last_sync_at"),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const emailSettingsRelations = relations(emailSettings, ({ one }) => ({
+    organization: one(organizations, {
+        fields: [emailSettings.organizationId],
+        references: [organizations.id],
+    }),
+}));
+
+// ----------------------------------------------------------------------
+// Password Reset Tokens
+// ----------------------------------------------------------------------
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+    identifier: text("identifier").notNull(), // Email
+    token: text("token").notNull().unique(),
+    expires: timestamp("expires").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+    pk: primaryKey({ columns: [t.identifier, t.token] }),
 }));
