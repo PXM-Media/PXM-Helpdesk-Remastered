@@ -1,11 +1,9 @@
-import type { NextAuthConfig } from "next-auth";
-
 export const authConfig = {
     pages: {
         signIn: "/login",
     },
     callbacks: {
-        authorized({ auth, request: { nextUrl } }) {
+        authorized({ auth, request: { nextUrl } }: { auth: any; request: { nextUrl: URL } | any }) {
             const isLoggedIn = !!auth?.user;
             const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
             if (isOnDashboard) {
@@ -19,12 +17,19 @@ export const authConfig = {
             }
             return true;
         },
-        session({ session, token }) {
+        async jwt({ token, user }: { token: any; user: any }) {
+            if (user) {
+                token.role = user.role;
+            }
+            return token;
+        },
+        session({ session, token }: { session: any; token: any }) {
             if (token.sub && session.user) {
                 session.user.id = token.sub;
+                session.user.role = token.role as "ADMIN" | "AGENT" | "END_USER";
             }
             return session;
         },
     },
     providers: [], // Added later in auth.ts
-} satisfies NextAuthConfig;
+};

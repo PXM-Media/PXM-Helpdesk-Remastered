@@ -21,6 +21,11 @@ export const organizations = pgTable("organizations", {
     sharedComments: boolean("shared_comments").default(false),
     domainNames: text("domain_names").array(), // For auto-mapping users by email domain
     details: jsonb("details"), // Store arbitrary address info etc
+    branding: jsonb("branding").$type<{
+        logoUrl?: string;
+        primaryColor?: string; // Hex
+        portalName?: string;
+    }>(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -141,6 +146,46 @@ export const comments = pgTable("comments", {
 });
 
 // ----------------------------------------------------------------------
+// Webhooks (Integrations)
+// ----------------------------------------------------------------------
+export const webhooks = pgTable("webhooks", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    url: text("url").notNull(),
+    secret: text("secret"), // For signing payloads (HMAC)
+    events: jsonb("events").$type<string[]>().default([]).notNull(), // e.g. ["ticket.created", "comment.created"]
+    active: boolean("active").default(true).notNull(),
+    description: text("description"),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ----------------------------------------------------------------------
+// Asset Management
+// ----------------------------------------------------------------------
+export const assetTypeEnum = pgEnum("asset_type", ["HARDWARE", "SOFTWARE", "LICENSE", "PERIPHERAL", "OTHER"]);
+export const assetStatusEnum = pgEnum("asset_status", ["AVAILABLE", "ASSIGNED", "MAINTENANCE", "RETIRED", "LOST"]);
+
+export const assets = pgTable("assets", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(), // e.g. "MacBook Pro 14 M3"
+    tag: text("tag").unique(), // e.g. "AST-001"
+
+    type: assetTypeEnum("type").default("HARDWARE").notNull(),
+    status: assetStatusEnum("status").default("AVAILABLE").notNull(),
+
+    assignedToId: uuid("assigned_to_id").references(() => users.id),
+
+    purchaseDate: timestamp("purchase_date"),
+    warrantyExpiry: timestamp("warranty_expiry"),
+
+    notes: text("notes"),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ----------------------------------------------------------------------
 // Relations (For convenient query API)
 // ----------------------------------------------------------------------
 export const organizationRelations = relations(organizations, ({ many }) => ({
@@ -155,6 +200,14 @@ export const userRelations = relations(users, ({ one, many }) => ({
     }),
     requestedTickets: many(tickets, { relationName: "requester_tickets" }),
     assignedTickets: many(tickets, { relationName: "assignee_tickets" }),
+    assets: many(assets),
+}));
+
+export const assetRelations = relations(assets, ({ one }) => ({
+    assignedTo: one(users, {
+        fields: [assets.assignedToId],
+        references: [users.id],
+    }),
 }));
 
 export const ticketRelations = relations(tickets, ({ one, many }) => ({

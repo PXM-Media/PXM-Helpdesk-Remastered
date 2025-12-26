@@ -111,17 +111,31 @@ export default async function TicketDetailPage({ params }: { params: { ticketId:
                         </div>
                     </div>
                 </div>
+            </div>
 
+            {ticket.customValues && ticket.customValues.length > 0 && (
                 <div className="space-y-4 pt-4 border-t">
-                    <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Tags</h3>
-                    <div className="flex flex-wrap gap-2">
-                        <span className="inline-flex items-center px-2 py-1 rounded bg-zinc-100 text-xs font-medium dark:bg-zinc-800">
-                            support
-                        </span>
-                        <span className="inline-flex items-center px-2 py-1 rounded bg-zinc-100 text-xs font-medium dark:bg-zinc-800">
-                            web
-                        </span>
+                    <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Custom Fields</h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                        {ticket.customValues.map((cv: any) => (
+                            <div key={cv.id} className="contents">
+                                <div className="text-muted-foreground self-center">{cv.field.title}</div>
+                                <div className="font-medium">{cv.value}</div>
+                            </div>
+                        ))}
                     </div>
+                </div>
+            )}
+
+            <div className="space-y-4 pt-4 border-t">
+                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Tags</h3>
+                <div className="flex flex-wrap gap-2">
+                    <span className="inline-flex items-center px-2 py-1 rounded bg-zinc-100 text-xs font-medium dark:bg-zinc-800">
+                        support
+                    </span>
+                    <span className="inline-flex items-center px-2 py-1 rounded bg-zinc-100 text-xs font-medium dark:bg-zinc-800">
+                        web
+                    </span>
                 </div>
             </div>
         </div>

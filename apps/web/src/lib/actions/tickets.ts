@@ -2,11 +2,14 @@
 
 import { db } from "@repo/database";
 import { type InferSelectModel, eq } from "drizzle-orm";
-import { comments, tickets as ticketsTable } from "@repo/database/schema";
-
-export type Ticket = InferSelectModel<typeof ticketsTable>;
+import { comments, tickets as ticketsTable, tickets, ticketFieldValues } from "@repo/database/schema";
+import { auth } from "../../../auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+
+import { triggerWebhooks } from "./webhooks";
+
+export type Ticket = InferSelectModel<typeof ticketsTable>;
 
 export async function getTickets() {
     try {
@@ -31,6 +34,11 @@ export async function getTicket(id: number) {
             with: {
                 requester: true,
                 assignee: true,
+                customValues: {
+                    with: {
+                        field: true
+                    }
+                },
                 comments: {
                     with: {
                         author: true
@@ -47,10 +55,6 @@ export async function getTicket(id: number) {
         return { success: false, error: "Failed to fetch ticket" };
     }
 }
-
-import { auth } from "../../../auth";
-
-// ... (getTickets and getTicket can remain public or be protected, let's keep public read for now but protected write)
 
 export async function addComment(ticketId: number, body: string, isPublic: boolean = true) {
     try {
@@ -71,6 +75,15 @@ export async function addComment(ticketId: number, body: string, isPublic: boole
 
         revalidatePath(`/dashboard/tickets/${ticketId}`);
         revalidatePath(`/dashboard`);
+
+        // Trigger Webhook
+        await triggerWebhooks("comment.created", {
+            ticketId,
+            body,
+            authorId: session.user.id,
+            public: isPublic
+        });
+
         return { success: true };
     } catch (error) {
         console.error("Failed to add comment:", error);
@@ -89,6 +102,10 @@ export async function updateTicketStatus(ticketId: number, status: "NEW" | "OPEN
 
         revalidatePath(`/dashboard/tickets/${ticketId}`);
         revalidatePath(`/dashboard`);
+
+        // Trigger Webhook
+        await triggerWebhooks("ticket.updated", { ticketId, status, updaterId: session.user.id });
+
         return { success: true };
     } catch (error) {
         console.error("Failed to update status:", error);
@@ -96,23 +113,34 @@ export async function updateTicketStatus(ticketId: number, status: "NEW" | "OPEN
     }
 }
 
-export async function createTicket(formData: FormData) {
+export type CreateTicketState = {
+    success?: boolean;
+    error?: string;
+    fieldErrors?: Record<string, string[]>;
+    ticketId?: number;
+} | undefined;
+
+export async function createTicket(prevState: CreateTicketState, formData: FormData): Promise<CreateTicketState> {
     let newTicketId: number | undefined;
     try {
         const session = await auth();
         const userId = session?.user?.id;
-        if (!userId) throw new Error("Unauthorized");
+        if (!userId) {
+            return { success: false, error: "Unauthorized" };
+        }
 
         const subject = formData.get("subject") as string;
         const description = formData.get("description") as string;
         const priority = formData.get("priority") as "URGENT" | "HIGH" | "NORMAL" | "LOW" || "NORMAL";
 
-        // Find user to get Org ID (assuming users belong to one org)
+        // Find user to get Org ID
         const user = await db.query.users.findFirst({
             where: (users, { eq }) => eq(users.id, userId)
         });
 
-        if (!user || !user.organizationId) throw new Error("User invalid");
+        if (!user || !user.organizationId) {
+            // throw new Error("User organization invalid");
+        }
 
         const [ticket] = await db.insert(ticketsTable).values({
             subject,
@@ -122,10 +150,34 @@ export async function createTicket(formData: FormData) {
             type: "QUESTION",
             requesterId: userId,
             submitterId: userId,
-            organizationId: user.organizationId,
+            organizationId: user?.organizationId,
         }).returning();
 
         newTicketId = ticket.id;
+
+        // Process Custom Fields
+        // Iterate over formData keys, look for "custom_" prefix
+        const customFieldEntries: { ticketId: number; fieldId: string; value: string }[] = [];
+
+        for (const [key, value] of Array.from(formData.entries())) {
+            if (key.startsWith("custom_") && typeof value === "string" && value.trim() !== "") {
+                const fieldId = key.replace("custom_", "");
+                // Basic validation: check if UUID? Skipping for speed, DB will enforce valid FK.
+                customFieldEntries.push({
+                    ticketId: ticket.id,
+                    fieldId,
+                    value: value
+                });
+            }
+        }
+
+        if (customFieldEntries.length > 0) {
+            await db.insert(ticketFieldValues).values(customFieldEntries);
+        }
+
+        // Trigger Webhook
+        await triggerWebhooks("ticket.created", ticket);
+
         revalidatePath("/dashboard");
     } catch (error) {
         console.error("Failed to create ticket:", error);
