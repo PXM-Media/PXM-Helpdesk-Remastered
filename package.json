@@ -18,6 +18,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@radix-ui/react-select": "^2.2.6",
+    "@repo/ui": "^0.0.0",
     "drizzle-orm": "^0.45.1"
   }
 }

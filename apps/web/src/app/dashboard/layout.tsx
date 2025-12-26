@@ -1,3 +1,4 @@
+import { Inbox, Settings, Users, Laptop, BookOpen, BarChart3 } from "lucide-react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Header } from "@/components/dashboard/Header";
 

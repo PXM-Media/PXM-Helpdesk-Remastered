@@ -1,5 +1,6 @@
 import { getUsers } from "@/lib/actions/users";
 import { UserRoleSelect } from "@/components/settings/UserRoleSelect";
+import { UserActionsMenu } from "@/components/settings/UserActionsMenu";
 import { formatDistanceToNow } from "date-fns";
 
 export default async function UsersSettingsPage() {
@@ -62,7 +63,7 @@ export default async function UsersSettingsPage() {
                                         </span>
                                     </td>
                                     <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0">
-                                        <button className="text-blue-600 hover:underline">Edit</button>
+                                        <UserActionsMenu userId={user.id} userName={user.name} />
                                     </td>
                                 </tr>
                             ))}

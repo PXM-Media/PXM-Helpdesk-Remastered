@@ -1,6 +1,8 @@
 import { getTicket } from "@/lib/actions/tickets";
+import { getActiveMacros } from "@/lib/actions/macros";
 import { ReplyBox } from "@/components/tickets/ReplyBox";
 import { StatusSelect } from "@/components/tickets/StatusSelect";
+import { TicketMacros } from "@/components/tickets/TicketMacros";
 import { formatDistanceToNow } from "date-fns";
 import { User as UserIcon, MessageSquare, Clock, Tag } from "lucide-react";
 import { notFound } from "next/navigation";
@@ -8,6 +10,7 @@ import { notFound } from "next/navigation";
 export default async function TicketDetailPage({ params }: { params: { ticketId: string } }) {
     const ticketId = parseInt(params.ticketId);
     const { data: ticket, success } = await getTicket(ticketId);
+    const { data: macros } = await getActiveMacros();
 
     if (!success || !ticket) {
         notFound();
@@ -18,7 +21,10 @@ export default async function TicketDetailPage({ params }: { params: { ticketId:
             {/* Main Content: Conversation */}
             <div className="flex-1 flex flex-col gap-6">
                 <div className="flex flex-col gap-2 border-b pb-4">
-                    <h1 className="text-2xl font-bold text-zinc-950 dark:text-zinc-50">{ticket.subject}</h1>
+                    <div className="flex items-start justify-between gap-4">
+                        <h1 className="text-2xl font-bold text-zinc-950 dark:text-zinc-50">{ticket.subject}</h1>
+                        <TicketMacros ticketId={ticket.id} macros={macros || []} />
+                    </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                             <Clock className="h-4 w-4" />

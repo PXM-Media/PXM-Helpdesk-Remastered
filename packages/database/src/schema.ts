@@ -165,6 +165,7 @@ export const webhooks = pgTable("webhooks", {
 // ----------------------------------------------------------------------
 export const assetTypeEnum = pgEnum("asset_type", ["HARDWARE", "SOFTWARE", "LICENSE", "PERIPHERAL", "OTHER"]);
 export const assetStatusEnum = pgEnum("asset_status", ["AVAILABLE", "ASSIGNED", "MAINTENANCE", "RETIRED", "LOST"]);
+export const articleStatusEnum = pgEnum("article_status", ["DRAFT", "PUBLISHED"]);
 
 export const assets = pgTable("assets", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -180,6 +181,37 @@ export const assets = pgTable("assets", {
     warrantyExpiry: timestamp("warranty_expiry"),
 
     notes: text("notes"),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ----------------------------------------------------------------------
+// Knowledge Base
+// ----------------------------------------------------------------------
+export const categories = pgTable("categories", {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    name: text("name").notNull(),
+    slug: text("slug").unique().notNull(),
+    description: text("description"),
+    icon: text("icon"), // Lucide icon name
+    order: integer("order").default(0),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const articles = pgTable("articles", {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    categoryId: integer("category_id").references(() => categories.id).notNull(),
+    authorId: uuid("author_id").references(() => users.id).notNull(),
+
+    title: text("title").notNull(),
+    slug: text("slug").unique().notNull(),
+    excerpt: text("excerpt"),
+    content: text("content").notNull(), // Markdown
+    status: articleStatusEnum("status").default("DRAFT").notNull(),
+    views: integer("views").default(0).notNull(),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -203,9 +235,70 @@ export const userRelations = relations(users, ({ one, many }) => ({
     assets: many(assets),
 }));
 
+// Automations
+export const automationEventTypeEnum = pgEnum("automation_event_type", [
+    "TICKET_CREATED",
+    "TICKET_UPDATED"
+]);
+
+export const automations = pgTable("automations", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: text("name").notNull(),
+    description: text("description"),
+    active: boolean("active").default(true).notNull(),
+    eventType: automationEventTypeEnum("event_type").notNull(),
+    conditions: jsonb("conditions").$type<{ field: string; operator: string; value: string }[]>().notNull(),
+    actions: jsonb("actions").$type<{ action: string; value: string }[]>().notNull(),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    organizationId: uuid("organization_id").references(() => organizations.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const assetRelations = relations(assets, ({ one }) => ({
     assignedTo: one(users, {
         fields: [assets.assignedToId],
+        references: [users.id],
+    }),
+}));
+
+export const automationRelations = relations(automations, ({ one }) => ({
+    organization: one(organizations, {
+        fields: [automations.organizationId],
+        references: [organizations.id],
+    }),
+}));
+
+// Macros
+export const macros = pgTable("macros", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    title: text("title").notNull(),
+    description: text("description"),
+    active: boolean("active").default(true).notNull(),
+    actions: jsonb("actions").$type<{ action: string; value: string }[]>().notNull(),
+    organizationId: uuid("organization_id").references(() => organizations.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const macroRelations = relations(macros, ({ one }) => ({
+    organization: one(organizations, {
+        fields: [macros.organizationId],
+        references: [organizations.id],
+    }),
+}));
+
+export const categoryRelations = relations(categories, ({ many }) => ({
+    articles: many(articles),
+}));
+
+export const articleRelations = relations(articles, ({ one }) => ({
+    category: one(categories, {
+        fields: [articles.categoryId],
+        references: [categories.id],
+    }),
+    author: one(users, {
+        fields: [articles.authorId],
         references: [users.id],
     }),
 }));

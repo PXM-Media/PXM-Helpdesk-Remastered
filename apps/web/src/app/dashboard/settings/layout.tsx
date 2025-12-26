@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@repo/ui/utils";
-import { Users, Settings, Tag, Shield } from "lucide-react";
+import { Users, Settings, Tag, Shield, Zap } from "lucide-react";
 
 const settingsNav = [
     { name: "General", href: "/dashboard/settings", icon: Settings },
     { name: "Users & Roles", href: "/dashboard/settings/users", icon: Users },
     { name: "Fields & Forms", href: "/dashboard/settings/fields", icon: Tag },
+    { name: "Automations", href: "/dashboard/settings/automations", icon: Zap },
     { name: "Security", href: "/dashboard/settings/security", icon: Shield },
 ];
 

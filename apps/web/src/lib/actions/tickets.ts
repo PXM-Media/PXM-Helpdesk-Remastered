@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { triggerWebhooks } from "./webhooks";
+import { processTriggers } from "../automations/engine";
 
 export type Ticket = InferSelectModel<typeof ticketsTable>;
 
@@ -177,6 +178,11 @@ export async function createTicket(prevState: CreateTicketState, formData: FormD
 
         // Trigger Webhook
         await triggerWebhooks("ticket.created", ticket);
+
+        // Process Automations
+        // We use setImmediate or just await (Next.js server actions time out eventually, but await is safer for now)
+        // Ideally offload to queue. For MVP, await.
+        await processTriggers(newTicketId, "TICKET_CREATED");
 
         revalidatePath("/dashboard");
     } catch (error) {
